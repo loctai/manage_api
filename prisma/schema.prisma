@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  username       String           @unique
+  email          String?          @unique
+  password       String
+  fname          String?
+  lname          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now())
+  isActive       Boolean          @default(true)
+  groups         Group[]
+  borrowBills    BorrowBill[]
+  borrowRegister BorrowRegister[]
+}
+
+// design parttern demo
+model Permission {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  groups    Group[]
+}
+
+model Group {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  users       User[]
+  permissions Permission[]
+}
+
+model BookTitle {
+  id          Int        @id @default(autoincrement())
+  title       String     @unique
+  author      String
+  image       String?
+  description String?
+  createdAt   DateTime   @default(now())
+  categorys   Category[]
+  books       Book[]
+}
+
+model Category {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  createdAt  DateTime    @default(now())
+  bookTitles BookTitle[]
+}
+
+model Book {
+  id              Int              @id @default(autoincrement())
+  isGood          Boolean
+  createdAt       DateTime         @default(now())
+  BookTitle       BookTitle?       @relation(fields: [bookTitleId], references: [id])
+  bookTitleId     Int?
+  borrowBills     BorrowBill[]
+  borrowRegisters BorrowRegister[]
+}
+
+model BorrowBill {
+  id             Int            @id @default(autoincrement())
+  user           User           @relation(fields: [userId], references: [id])
+  userId         Int
+  borrowDate     DateTime       @default(now())
+  planReturnDate DateTime
+  returnDate     DateTime?
+  isReturned     Boolean
+  notifies       BorrowNotify[]
+  books          Book[]
+}
+
+model BorrowRegister {
+  id             Int      @id @default(autoincrement())
+  note           String?
+  isConfirmed    Boolean
+  isRejected     Boolean?
+  planReturnDate DateTime
+  createDate     DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         Int
+  books          Book[]
+}
+
+model BorrowNotify {
+  id           Int         @id @default(autoincrement())
+  title        String
+  content      String
+  isRead       Boolean
+  createDate   DateTime    @default(now())
+  BorrowBill   BorrowBill? @relation(fields: [borrowBillId], references: [id])
+  borrowBillId Int?
+}
